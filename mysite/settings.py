@@ -11,15 +11,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = "fr0gf%p@iy7i-e^wn-2e-0okr-0*ifv=afw$*_9lxl&*3+rx16"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "alinlab.kaist.ac.kr"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    "polls.apps.PollsConfig",
     "kcss.apps.KcssConfig",
     "django.contrib.admin",
     "django.contrib.auth",
