@@ -157,4 +157,209 @@ class LSTM_Model:
             return min_korean_prob
 
     def woman_prob_first_name(self, first_name):
+        """
+        Calculate korean_female_prob of korean first_name
+        """
         return self._pred(normalize(first_name))[0]
+
+    def build_model(self):
+        model = Sequential()
+        model.add(Bidirectional(LSTM(64, input_shape=(15, 26))))
+        model.add(Dense(3, activation="softmax", kernel_initializer="normal"))
+        model.compile(
+            loss="categorical_crossentropy",
+            optimizer=Adam(0.0005),
+            metrics=["accuracy", as_keras_metric(tf.metrics.auc)],
+        )
+        self.model = model
+
+    def show_train_graph(self, hist):
+        fig, loss_ax = plt.subplots()
+        acc_ax = loss_ax.twinx()
+
+        loss_ax.plot(hist.history["loss"], "y", label="train loss")
+        loss_ax.plot(hist.history["val_loss"], "r", label="val loss")
+
+        acc_ax.plot(hist.history["acc"], "b", label="train acc")
+        acc_ax.plot(hist.history["val_acc"], "g", label="val acc")
+
+        acc_ax.plot(hist.history["auc"], "m", label="train auc")
+        acc_ax.plot(hist.history["val_auc"], "k", label="val auc")
+
+        loss_ax.set_xlabel("epoch")
+        loss_ax.set_ylabel("loss")
+        acc_ax.set_ylabel("auc_roc")
+
+        loss_ax.legend(loc="upper left")
+        acc_ax.legend(loc="lower left")
+
+        plt.show()
+        fig.savefig("./static/data/train_graph.png")
+
+    def train_korean_prob_model(self):
+        # ------------------------------------
+        max_seq_len = 15
+        np.random.seed(5)
+        # ------------------------------------
+
+        kr_list = get_file("./static/data/kr_first_names.txt")
+        ch_list = get_file("./static/data/ch_first_names.txt")
+        us_list = get_file("./static/data/us_first_names.txt")
+
+        a = len(kr_list)
+        b = len(ch_list)
+        c = len(us_list)
+        data_len = a + b + c
+
+        X, Y = [], []
+
+        for _ in range(1):
+            for name in kr_list:
+                X.append(name_one_hot(name, max_seq_len))
+                Y.append(np.array([1, 0, 0]))
+        for _ in range(1):
+            for name in ch_list:
+                X.append(name_one_hot(name, max_seq_len))
+                Y.append(np.array([0, 1, 0]))
+        for name in us_list:
+            X.append(name_one_hot(name, max_seq_len))
+            Y.append(np.array([0, 0, 1]))
+
+        X, Y = np.array(X), np.array(Y)
+
+        np.reshape(X, (data_len, max_seq_len, 26))
+        np.reshape(Y, (data_len, 1, 3))
+
+        permutation = np.random.permutation(X.shape[0])
+        X = X[permutation]
+        Y = Y[permutation]
+
+        train_len = int(data_len * 0.99)
+
+        x_train = X[:train_len]
+        y_train = Y[:train_len]
+        x_val = X[train_len:]
+        y_val = Y[train_len:]
+
+        loss_CP = ModelCheckpoint(
+            "./static/temp/loss.h5",
+            monitor="val_loss",
+            mode="min",
+            verbose=0,
+            save_best_only=True,
+        )
+        acc_CP = ModelCheckpoint(
+            "./static/temp/acc.h5",
+            monitor="val_acc",
+            mode="max",
+            verbose=0,
+            save_best_only=True,
+        )
+        auc_CP = ModelCheckpoint(
+            "./static/temp/auc.h5",
+            monitor="val_auc",
+            mode="max",
+            verbose=0,
+            save_best_only=True,
+        )
+
+        self.build_model()
+        model = self.model
+        hist = model.fit(
+            x_train,
+            y_train,
+            epochs=300,
+            batch_size=512,
+            validation_data=(x_val, y_val),
+            verbose=2,
+            callbacks=[loss_CP, acc_CP, auc_CP],
+        )
+
+        # score = model.evaluate(x_test, y_test)
+        # print("%s: %.2f%%" %(model.metrics_names[1], score[1] * 100))
+
+        # model.save(self.model_path)
+        self.show_train_graph(hist)
+
+    # def train_woman_prob_model(self):
+    #     # ------------------------------------
+    #     max_seq_len = 15
+    #     np.random.seed(5)
+    #     # ------------------------------------
+    #     # 
+    #     names_by_gender = json.load(open("./names_by_gender.json"))
+
+    #     female_list = names_by_gender["female"]
+    #     male_list = names_by_gender["male"]
+
+    #     a = len(female_list)
+    #     b = len(male_list)
+
+    #     data_len = a + b
+
+    #     X, Y = [], []
+
+    #     for _ in range(1):
+    #         for name in female_list:
+    #             X.append(name_one_hot(name, max_seq_len))
+    #             Y.append(np.array([1, 0]))
+    #     for _ in range(1):
+    #         for name in male_list:
+    #             X.append(name_one_hot(name, max_seq_len))
+    #             Y.append(np.array([0, 1]))
+
+    #     X, Y = np.array(X), np.array(Y)
+
+    #     np.reshape(X, (data_len, max_seq_len, 26))
+    #     np.reshape(Y, (data_len, 1, 2))
+
+    #     permutation = np.random.permutation(X.shape[0])
+    #     X = X[permutation]
+    #     Y = Y[permutation]
+
+    #     train_len = int(data_len * 0.99)
+
+    #     x_train = X[:train_len]
+    #     y_train = Y[:train_len]
+    #     x_val = X[train_len:]
+    #     y_val = Y[train_len:]
+
+    #     loss_CP = ModelCheckpoint(
+    #         "./model/gender_loss.h5",
+    #         monitor="val_loss",
+    #         mode="min",
+    #         verbose=0,
+    #         save_best_only=True,
+    #     )
+    #     acc_CP = ModelCheckpoint(
+    #         "./model/gender_acc.h5",
+    #         monitor="val_acc",
+    #         mode="max",
+    #         verbose=0,
+    #         save_best_only=True,
+    #     )
+    #     auc_CP = ModelCheckpoint(
+    #         "./model/gender_auc.h5",
+    #         monitor="val_auc",
+    #         mode="max",
+    #         verbose=0,
+    #         save_best_only=True,
+    #     )
+
+    #     self.build_model()
+    #     model = self.model
+    #     hist = model.fit(
+    #         x_train,
+    #         y_train,
+    #         epochs=100,
+    #         batch_size=512,
+    #         validation_data=(x_val, y_val),
+    #         verbose=2,
+    #         callbacks=[loss_CP, acc_CP, auc_CP],
+    #     )
+
+    #     # score = model.evaluate(x_test, y_test)
+    #     # print("%s: %.2f%%" %(model.metrics_names[1], score[1] * 100))
+
+    #     # model.save(self.model_path)
+    #     self.show_train_graph(hist)
