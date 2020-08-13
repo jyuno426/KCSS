@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Junho Han, Seunghyun Lee, Jinwoo Shin">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    <style type="text/css">
+      @media (min-width: 768px) {
+        .container { width: 1100px; max-width: 1100px; }
+        #footer { max-width: 740px; }
+      }
+      body {
+        font-family: Helvetica, sans-serif;
+        font-size: 14px;
+      }
+      a {
+        color : blue ;
+        text-decoration: none;
+      }
+      a:hover{
+        color : blue;
+        text-decoration: underline;
+      }
+      a:visited{
+        color:darkcyan;
+      }
+      a:active{
+        color:black;
+      }
+      .container{
+        max-width: 1100px;
+        padding-top: 15px;
+      }
+      #footer{
+        text-align: justify;
+        padding-top: 5px;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      hr{
+        border: 0;
+        height: 1px;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+      }
+      button.accordion{
+        background-color: #e7e7e7;
+        color: black;
+        cursor:pointer;
+        border:none;
+        outline:none;
+        width:100%;
+        text-align:left;
+        padding:8px;
+        margin:4px 0;
+        border-radius:4px;
+        transition:0.3s;
+      }
+      button.accordion:hover{
+        background-color:#96d2ea;
+      }
+      button.accordion.active{
+        background-color:#96d2ea;
+        color: black;
+        border-radius:4px 4px 0 0;
+        margin:4px 0 0;
+       }
+      div.panel{
+        opacity:0;
+        max-height:0;
+        background-color:rgba(255,255,255,0.8);
+        color:#000;
+        border-radius:0 0 4px 4px;
+        overflow: auto;
+        padding:0 15px 0 15px;
+        margin:0;
+        transition: 0.3s ease-in;
+      }
+      div.panel.show{
+        opacity:1;
+        max-height:500px;
+        padding: 8px 15px 0 15px;
+        transition: 0.6s ease;
+      }
+      svg {
+        background-color:#e7e7e7;
+        width:100%;
+        border-radius:4px;
+      }
+    </style>
+    <script type="text/javascript">
+      function action(accordion) {
+        accordion.classList.toggle("active");
+        accordion.nextElementSibling.classList.toggle("show");
+      }
+    </script>
+
+    <title> Korean Computer Scientist Search (KCSS) </title>
+  </head>
+
+  <body>
+    <br>
+    <div class="container" id="header">
+      <h2 style="font-family: Georgia, serif; font-weight: bold; color: #527bbd;">
+        Korean Computer Scientist Search (KCSS)
+      </h2>
+    </div>
+    <hr>
+    <div class="container">
+      <div style="width: 100%; height: {{ canvas_height }};">
+        <svg style="height: {{ canvas_height }};"></svg>
+      </div>
+      <h4 style="text-align: center; font-family: Georgia, serif; font-weight: bold; color: #527bbd;">
+        Collaboration Graph
+      </h4>
+
+      <br><br>
+      <p style="font-family: Georgia, serif; font-size: 15px">
+        The following list of authors is sorted by last name.
+        For each entry AUTHOR (<b>N</b>, <b>P</b>),
+        <b>N</b> is the number of papers written by AUTHOR and
+        <b>P</b> is the probability that AUTHOR has a Korean name (as predicted by our LSTM model).
+      </p>
+      {% for name in name_list %}
+        <button class="accordion" onclick="action(this)">
+          <b> {{ name }} ({{ data_dict[name][1] }}, {{ prob_dict[name] }}%)</b>
+        </button>
+        <div class="panel">
+          {{ info_dict[name] }}<br>
+          <p>
+            {% for title, authors, url, pages, conf, year in data_dict[name][0] %}
+              <br>
+              <b>{{ conf.upper() }}</b>, {{ year }}{% for author in authors %}, {{ author }}{% endfor %}<br>
+              <a href="{{ url }}" style="text-decoration:none;">
+                <img alt src="../static/paper_image.png" class="icon">
+              </a>
+              &nbsp;<i>{{ title }}</i>
+              <br>
+            {% endfor %}
+            <br>
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <br>
+    <hr>
+    <div class="container" id="footer">
+      <address>KCSS was created by
+        <a href="mailto:jyuno426@kaist.ac.kr"> Junho Han</a>,
+        <a href="mailto:camusian@kaist.ac.kr"> Seunghyun Lee</a> and
+        <a href="mailto:jinwoos@kaist.ac.kr"> Jinwoo Shin</a> at
+        <a href="http://alinlab.kaist.ac.kr"> Algorithmic Intelligence Laboratory, KAIST</a>.<br><br>
+        Korean names are classified by a LSTM model, and search results for Korean authors are not perfect.
+        If you could notify us (by emails:
+        <a href="mailto:camusian@kaist.ac.kr">camusian@kaist.ac.kr</a>,
+        <a href="mailto:jyuno426@kaist.ac.kr">jyuno426@kaist.ac.kr)</a>
+        Korean authors that do not appear in the search results, we will incorporate them.<br><br>
+        The database is updated every Sunday 03:00:00
+        <a href="https://www.timeanddate.com/worldclock/south-korea/seoul">KST</a>
+        automatically.
+      </address>
+    </div>
+
+    <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?2.6.0"></script>
+		<script type="text/javascript" src="http://mbostock.github.com/d3/d3.layout.js?2.6.0"></script>
+		<script type="text/javascript" src="http://mbostock.github.com/d3/d3.geom.js?2.6.0"></script>
+    <script type="text/javascript" charset="utf-8">
+      var name_list = {{ name_list|safe }};
+      var data_dict = {{ data_dict|safe }};
+      var max_papers = {{ max_papers|safe }};
+      var info_dict = {{ info_dict|safe}};
+      var edge_dict = {{ edge_dict|safe }};
+
+			var vis = d3.select('svg');
+		  var w = vis.style('width').replace("px", ""),
+		      h = vis.style('height').replace("px", "");
+
+			var nodes = [];
+      var links = [];
+			var labelAnchors = [];
+			var labelAnchorLinks = [];
+			var dict = {};
+
+			for(var i = 0; i < name_list.length; i++) {
+				var node = {label : name_list[i]};
+				nodes.push(node);
+				labelAnchors.push({node : node});
+				labelAnchors.push({node : node});
+				dict[name_list[i]] = i;
+			};
+
+      for(var author in edge_dict){
+        for(var coauthor in edge_dict[author]){
+          links.push({
+            source: dict[author],
+            target: dict[coauthor],
+            weight: 1
+          });
+        }
+      }
+
+			for(var i = 0; i < nodes.length; i++) {
+				labelAnchorLinks.push({
+					source: i * 2,
+					target: i * 2 + 1,
+					weight: 1
+				});
+			};
+
+      function getNodeSize(node){
+        return Math.max(5, 20*Math.sqrt(data_dict[node.label][1]/max_papers));
+      }
+
+			var force = d3
+			  .layout.force()
+			  .size([w, h])
+			  .nodes(nodes)
+			  .links(links)
+			  .gravity(2)
+			  .linkDistance(50)
+			  .charge(-3000)
+			  .linkStrength(0.5);
+			force.start();
+
+			var force2 = d3
+			  .layout.force()
+			  .nodes(labelAnchors)
+			  .links(labelAnchorLinks)
+			  .gravity(0)
+			  .linkDistance(0)
+			  .linkStrength(4)
+			  .charge(-100)
+			  .size([w, h]);
+			force2.start();
+
+			var link = vis
+			  .selectAll("line.link")
+			  .data(links)
+			  .enter()
+			  .append("svg:line")
+			  .attr("class", "link")
+			  .style("stroke", "#CCC");
+
+			var node = vis
+			  .selectAll("g.node")
+			  .data(force.nodes())
+			  .enter()
+			  .append("svg:g")
+			  .attr("class", "node");
+
+			node.append("svg:circle")
+			  .attr("r", getNodeSize)
+			  .style("fill", "rgba(169,183,192,1)")
+			  .style("stroke", "#FFF")
+			  .style("stroke-width", 2);
+			node.call(force.drag);
+
+			var anchorLink = vis
+			  .selectAll("line.anchorLink")
+			  .data(labelAnchorLinks)
+			  //.enter().append("svg:line").attr("class", "anchorLink").style("stroke", "#999");
+
+			var anchorNode = vis
+			  .selectAll("g.anchorNode")
+			  .data(force2.nodes())
+			  .enter()
+			  .append("svg:g")
+			  .attr("class", "anchorNode");
+
+			anchorNode.append("svg:circle").attr("r", 0).style("fill", "#FFF");
+			anchorNode.append("svg:text").text(function(d, i) {
+			  return i % 2 == 0 ? "" : d.node.label
+			}).style("fill", "#555")
+			  .style("font-family", "Arial")
+			  .style("font-size", 12);
+
+			var updateLink = function() {
+				this.attr("x1", function(d) {
+					return d.source.x;
+				}).attr("y1", function(d) {
+					return d.source.y;
+				}).attr("x2", function(d) {
+					return d.target.x;
+				}).attr("y2", function(d) {
+					return d.target.y;
+				});
+			};
+
+			var updateNode = function() {
+				this.attr("transform", function(d) {
+					return "translate(" + d.x + "," + d.y + ")";
+				});
+			};
+
+
+			force.on("tick", function() {
+
+				force2.start();
+
+				node.call(updateNode);
+
+				anchorNode.each(function(d, i) {
+					if(i % 2 == 0) {
+						d.x = d.node.x;
+						d.y = d.node.y;
+					} else {
+						var b = this.childNodes[1].getBBox();
+
+						var diffX = d.x - d.node.x;
+						var diffY = d.y - d.node.y;
+
+						var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+						var shiftX = b.width * (diffX - dist) / (dist * 2);
+						shiftX = Math.max(-b.width, Math.min(0, shiftX));
+						var shiftY = 5;
+						this.childNodes[1].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+					}
+				});
+
+				anchorNode.call(updateNode);
+
+				link.call(updateLink);
+				anchorLink.call(updateLink);
+
+			});
+    </script>
+
+  </body>
+</html>

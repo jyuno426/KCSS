@@ -1,0 +1,188 @@
+{% load static %}
+
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="{{ kcss_author }}">
+  <title> {{ kcss_title }} </title>
+  
+  <link rel="stylesheet" href="{% static 'kcss/css/bootstrap.min.css'%}">
+  <link rel="stylesheet" href="{% static 'kcss/css/index.css'%}">
+  <link rel="shortcut icon" href="{% static 'kcss/images/favicon.ico'%}">
+  
+  {{ field_table|json_script:"field_table" }}
+  <script type="text/javascript">
+    const field_table = JSON.parse(document.getElementById("field_table").textContent);
+  </script>
+  <script type="text/javascript" src="{% static 'kcss/js/checkbox.js'%}"></script>
+</head>
+
+<body>
+  <br>
+  <div class="container" id="header">
+    <h2> {{ kcss_title }} </h2>
+  </div>
+  <hr>
+
+  <div class="container">
+    <div class="form-inline">
+      <div class="form-group">
+        <label for="from_year">From</label>
+        <select class="form-control" id="from_year">
+          {% for year in years|slice:":49" %}
+            <option>{{ year }}</option>
+          {% endfor %}
+          
+          <option value="2009" selected>2009</option>
+          
+          {% for year in years|slice:"51:" %}
+            <option>{{ year }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      &nbsp;
+      
+      <div class="form-group">
+        <label for="to_year">To</label>
+        <select class="form-control" id="to_year">
+          {% for year in years|slice:":-1" %}
+            <option>{{ year }}</option>
+          {% endfor %}
+          <option selected>{{ years|last }}</option>
+        </select>
+      </div>
+      
+      &nbsp;
+      
+      <div class="form-group">
+        <label for="author_filter">Filter</label>
+        <select class="form-control" id="author_filter">
+          {% if not is_women %}
+            <option>all</option>
+          {% endif %}
+          <option selected>only korean</option>
+          {% if not is_women %}
+            <option>only first author</option>
+            <option>only last author</option>
+          {% endif %}
+          <option>only korean first author</option>
+          <option>only korean last author</option>
+        </select>
+      </div>
+      
+      {% if is_women %}
+        <div class="form-group">
+          <label for="women_filter"></label>
+          <select class="form-control" id="women_filter">
+            <option value="0">w + m</option>
+            <option value="25">w 25%~</option>
+            <option value="50" selected>w 50%~</option>
+          </select>
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="author_limit"></label>
+        <select class="form-control" id="author_limit">
+          <option value="10" selected>&le; 10 authors (or more including ties)</option>
+          <option value="25">&le; 25 authors (or more including ties)</option>
+          <option value="50">&le; 50 authors (or more including ties)</option>
+          {% comment %} <option value="100">&le; 100 authors (or more including ties)</option> {% endcomment %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="min_num_pages"></label>
+        <select class="form-control" id="min_num_pages">
+          <option value="1">&ge; 1 pages</option>
+          <option value="2">&ge; 2 pages</option>
+          <option value="3">&ge; 3 pages</option>
+          <option value="4">&ge; 4 pages</option>
+          <option value="5" selected>&ge; 5 pages</option>
+          <option value="6">&ge; 6 pages</option>
+        </select>
+      </div>
+      
+      &nbsp;
+      
+      <div class="form-group">
+        <button type="submit" onclick="submit()" class="btn btn-primary form-control">
+          <b>Submit</b>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-4">
+        <div class="checkbox">
+          <label style="font-size: 20px;">
+            <input type="checkbox" id="all" onclick="checkAll(this)"
+                    style="position: relative; bottom: 1px;">
+            <b> All Conferences</b>
+          </label>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="checkbox">
+          <label style="font-size: 20px;">
+            <input type="checkbox" id="CSRankings" onclick="checkCSRankings(this)"
+                    style="position: relative; bottom: 1px;">
+            <b> All Conferences on <a href="https://csrankings.org"> CSRankings </a> </b>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    {% for row in field_table %}
+      <div class="row">
+        {% for area, conf_list in row %}
+          <div class="col-sm-4">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" id="{{ area }}" onclick="checkParts(this)"><b>{{ area }}</b>
+              </label>
+            </div>
+            {% for conf, year in conf_list %}
+              <div class="checkbox" style="padding-left: 20px;">
+                <label>
+                  <input type="checkbox" name="{{ area }}" id="{{ conf }}" onclick="allChecked()">
+                  <!--<div class="label-text">{{ conf }}</div> {{ year }}-->
+                  {{ conf }} {{ year }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  
+  <br>
+  <hr>
+  <div class="container" id="footer">
+    <address>KCSS was created by
+      <a href="mailto:jyuno426@kaist.ac.kr"> Junho Han</a>,
+      <a href="mailto:camusian@kaist.ac.kr"> Seunghyun Lee</a> and
+      <a href="mailto:jinwoos@kaist.ac.kr"> Jinwoo Shin</a> at
+      <a href="http://alinlab.kaist.ac.kr"> Algorithmic Intelligence Laboratory, KAIST</a>.<br><br>
+      Korean names are classified by a LSTM model, and search results for Korean authors are not perfect.
+      If you could notify us (by emails:
+      <a href="mailto:camusian@kaist.ac.kr">camusian@kaist.ac.kr</a>,
+      <a href="mailto:jyuno426@kaist.ac.kr">jyuno426@kaist.ac.kr)</a>
+      Korean authors that do not appear in the search results, we will incorporate them.<br><br>
+      (*) indicates that the conference is listed on <a href="https://csrankings.org/">CSRankings.</a>
+      We do not apply any specific rules of CSRankings, for example,
+      CSRankings only counts papers of at least 6 pages while we do all papers.
+      Our search results may therefore be different from those of CSRankings.<br><br>
+      The database is updated every Sunday 03:00:00
+      <a href="https://www.timeanddate.com/worldclock/south-korea/seoul">KST</a>
+      automatically.
+    </address>
+  </div>
+
+</body>
+</html>

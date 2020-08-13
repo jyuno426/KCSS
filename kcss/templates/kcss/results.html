@@ -1,0 +1,126 @@
+{% load static %}<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="{{ kcss_author }}">
+  <title> {{ kcss_title }} </title>
+  
+  <link rel="stylesheet" href="{% static 'kcss/css/bootstrap.min.css'%}">
+  <link rel="stylesheet" href="{% static 'kcss/css/index.css'%}">
+  <link rel="shortcut icon" href="{% static 'kcss/images/favicon.ico'%}">
+  
+  <script src="http://d3js.org/d3.v2.js"></script>
+  
+
+  {{ result|json_script:"result" }}
+  {{ weight_dict|json_script:"weight_dict" }}
+  {{ max_num_publications|json_script:"max_num_publications" }}
+
+  <script type="text/javascript">
+    const result = JSON.parse(document.getElementById("result").textContent);
+    const weight_dict = JSON.parse(document.getElementById("weight_dict").textContent);
+    const max_num_publications = JSON.parse(document.getElementById("max_num_publications").textContent);
+  </script>
+  <script type="text/javascript">
+    function action(accordion) {
+      accordion.classList.toggle("active");
+      accordion.nextElementSibling.classList.toggle("show");
+    }
+  </script>
+
+</head>
+
+<body>
+  <br>
+  <div class="container" id="header">
+    <h2> {{ kcss_title }} </h2>
+  </div>
+  <hr>
+
+  <div class="container">
+      <div style="width: 100%; height: {{ canvas_height }};">
+        <svg style="height: {{ canvas_height }};"></svg>
+      </div>
+      <h4> Collaboration Graph </h4>
+
+      <br><br>
+      <p style="font-family: Georgia, serif; font-size: 15px">
+        The following list of authors is sorted by last name.
+        For each entry AUTHOR (<b>N</b>, <b>P</b>),
+        <b>N</b> is the number of papers written by AUTHOR and
+        <b>P</b> is the probability that AUTHOR has a Korean {% if is_women %} female {% endif %}name (as predicted by our LSTM model).
+      </p>
+
+      {% for author_name, probability, publications, num_publications_by_conf in result %}
+        <button class="accordion" onclick="action(this)">
+          <b> {{ author_name }} ({{ publications|length }}, {{ probability }}%)</b>
+        </button>
+
+        <div class="panel">
+          {{ num_publications_by_conf }}<br>
+          <p>
+            {% for p in publications %}
+              <br>
+              <b>{{ p.conf }}</b>, {{ p.year }} {{ p.authors }}<br>
+              <a href="{{ p.url }}" style="text-decoration:none;">
+                <img alt src="{% static 'kcss/images/paper_image.png'%}" class="icon">
+              </a>
+              &nbsp;<i>{{ p.title }}</i>
+              <br>
+            {% endfor %}
+            <br>
+          </p>
+        </div>
+
+      {% endfor %}
+
+      {% comment %} {% for name in name_list %}
+        <button class="accordion" onclick="action(this)">
+          <b> {{ name }} ({{ data_dict[name][1] }}, {{ prob_dict[name] }}%)</b>
+        </button>
+        <div class="panel">
+          {{ info_dict[name] }}<br>
+          <p>
+            {% for title, authors, url, pages, conf, year in data_dict[name][0] %}
+              <br>
+              <b>{{ conf.upper() }}</b>, {{ year }}{% for author in authors %}, {{ author }}{% endfor %}<br>
+              <a href="{{ url }}" style="text-decoration:none;">
+                <img alt src="../static/paper_image.png" class="icon">
+              </a>
+              &nbsp;<i>{{ title }}</i>
+              <br>
+            {% endfor %}
+            <br>
+          </p>
+        </div>
+      {% endfor %} {% endcomment %}
+    </div>
+  
+  <br>
+  <hr>
+  <div class="container" id="footer">
+    <address>KCSS was created by
+      <a href="mailto:jyuno426@kaist.ac.kr"> Junho Han</a>,
+      <a href="mailto:camusian@kaist.ac.kr"> Seunghyun Lee</a> and
+      <a href="mailto:jinwoos@kaist.ac.kr"> Jinwoo Shin</a> at
+      <a href="http://alinlab.kaist.ac.kr"> Algorithmic Intelligence Laboratory, KAIST</a>.<br><br>
+      Korean names are classified by a LSTM model, and search results for Korean authors are not perfect.
+      If you could notify us (by emails:
+      <a href="mailto:camusian@kaist.ac.kr">camusian@kaist.ac.kr</a>,
+      <a href="mailto:jyuno426@kaist.ac.kr">jyuno426@kaist.ac.kr)</a>
+      Korean authors that do not appear in the search results, we will incorporate them.<br><br>
+      (*) indicates that the conference is listed on <a href="https://csrankings.org/">CSRankings.</a>
+      We do not apply any specific rules of CSRankings, for example,
+      CSRankings only counts papers of at least 6 pages while we do all papers.
+      Our search results may therefore be different from those of CSRankings.<br><br>
+      The database is updated every Sunday 03:00:00
+      <a href="https://www.timeanddate.com/worldclock/south-korea/seoul">KST</a>
+      automatically.
+    </address>
+  </div>
+
+  <script type="text/javascript" src="{% static 'kcss/js/graph.js'%}"></script>
+  
+</body>
+</html>

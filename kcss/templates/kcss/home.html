@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Junho Han, Seunghyun Lee, Jinwoo Shin">
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!--<link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">-->
+    <style type="text/css">
+      @media (min-width: 768px) {
+        .container { width: 1100px; max-width: 1100px; }
+        #footer { max-width: 740px; }
+      }
+      body {
+        font-family: Helvetica, sans-serif;
+        font-size: 14px;
+      }
+      a {
+        color : blue ;
+        text-decoration: none;
+      }
+      a:hover{
+        color : blue;
+        text-decoration: underline;
+      }
+      a:visited{
+        color:darkcyan;
+      }
+      a:active{
+        color:black;
+      }
+      .container{
+        max-width: 1100px;
+        padding-top: 15px;
+      }
+      .col-sm-4 {
+        padding-bottom: 1px;
+      }
+      #footer{
+        text-align: justify;
+        padding-top: 5px;
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+      hr{
+        border: 0;
+        height: 1px;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
+      }
+
+      .btn:focus, .btn:active:focus, .btn.active:focus {
+        outline: 0 none;
+      }
+
+      .btn-primary,
+      .btn-primary:hover,
+      .btn-primary:focus,
+      .btn-primary:active,
+      .btn-primary.active,
+      .btn-primary:active,
+      .btn-primary:active:focus,
+      .open > .dropdown-toggle.btn-primary {
+        border: none;
+        background-color:#527bbd;
+        box-shadow: none;
+      }
+      <!--.label-text {-->
+        <!--width: 125px;-->
+        <!--display: inline-block;-->
+      <!--}-->
+    </style>
+
+
+    <script>
+      function checkAll(allbox) {
+        var boxes = document.getElementsByTagName("input");
+        for (var i = 0; i < boxes.length; i++)
+          boxes[i].checked = allbox.checked;
+      }
+
+      function checkCSRankings(csbox) {
+        var boxes = document.getElementsByTagName("input");
+        for (var i = 0; i < boxes.length; i++)
+          if (boxes[i].id.includes("*"))
+            boxes[i].checked = csbox.checked;
+        allChecked();
+      }
+
+      function checkParts(partbox) {
+        var boxes = document.getElementsByName(partbox.id);
+        for (var i = 0; i < boxes.length; i++)
+          boxes[i].checked = partbox.checked;
+        allChecked();
+      }
+
+      function allChecked() {
+        var i, j, k;
+        var area_table = {{ area_table|safe }};
+        for (i = 0; i < area_table.length; i++) {
+          for (j = 0; j < area_table[i].length; j++) {
+            var partbox = document.getElementById(area_table[i][j][0]);
+            var boxes = document.getElementsByName(area_table[i][j][0]);
+            partbox.checked = true;
+            for (k = 0; k < boxes.length; k++)
+              if (!boxes[k].checked)
+                partbox.checked = false;
+          }
+        }
+
+        var allbox = document.getElementById("all");
+        var csbox = document.getElementById("CSRankings");
+        var boxes = document.getElementsByTagName("input");
+
+        csbox.checked = true;
+        for (i = 0; i < boxes.length; i++)
+          if (boxes[i].id.includes("*") && !boxes[i].checked)
+            csbox.checked = false;
+
+        var c = 0;
+        for (i = 0, c = 0; i < boxes.length; i++)
+            if (!boxes[i].checked)
+              c++;
+
+        allbox.checked = c < 2 ? true : false;
+      }
+
+      function submit(){
+      	var s1 = document.getElementById("fromyear").value;
+      	var s2 = document.getElementById("toyear").value;
+        var s3 = document.getElementById("filter").selectedIndex;
+        var s4 = document.getElementById("filter2").selectedIndex;
+        var s5 = document.getElementById("filter3").selectedIndex;
+
+      	var new_location;
+        var cur_location = window.location.pathname;
+
+        if (cur_location === '/') {
+          new_location = "/"+s1+s2+s3+s4+s5+"_";
+        } else {
+          new_location = cur_location + "/"+s1+s2+s3+s4+s5+"_";
+        }
+
+        var area_table = {{ area_table|safe }};
+
+      	var i, j, k, l, boxes;
+      	for (i = 0; i < area_table.length; i++) {
+      	  for (j = 0; j < area_table[i].length; j++) {
+            boxes = document.getElementsByName(area_table[i][j][0]);
+            for (k = 0; k < boxes.length; k++)
+              if (boxes[k].checked) new_location += (
+                boxes[k].id.replace(" ", "-").replace("*", "") + "_"
+              );
+      	  }
+      	}
+      	window.location = new_location;
+      }
+    </script>
+
+
+    <title> Korean Computer Scientist Search (KCSS) </title>
+  </head>
+
+  <body>
+    <br>
+    <div class="container" id="header">
+      <h2 style="font-family: Georgia, serif; font-weight: bold; color: #527bbd;">
+        Korean Computer Scientist Search (KCSS)
+      </h2>
+    </div>
+    <hr>
+
+    <div class="container">
+      <div class="form-inline">
+        <div class="form-group">
+          <label for="fromyear">From</label>
+          <select class="form-control" id="fromyear">
+            {% for year in years[:2008-years[-1]] %}
+              <option>{{year}}</option>
+            {% endfor %}
+            <option value="2009" selected>2009</option>
+            {% for year in years[2009-years[-1]:] %}
+              <option>{{year}}</option>
+            {% endfor %}
+          </select>
+        </div>
+        &nbsp;
+        <div class="form-group">
+          <label for="toyear">To</label>
+          <select class="form-control" id="toyear">
+            {% for year in years[:-1] %}
+              <option>{{year}}</option>
+            {% endfor %}
+            <option selected>{{years[-1]}}</option>
+          </select>
+        </div>
+        &nbsp;
+        <div class="form-group">
+          <label for="filter">Filter</label>
+          <select class="form-control" id="filter">
+            <option>all</option>
+            <option selected>only korean</option>
+            <option>only first author</option>
+            <option>only last author</option>
+            <option>only korean first author</option>
+            <option>only korean last author</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="filter2"></label>
+          <select class="form-control" id="filter2">
+            <option selected>&le; 10 authors (or more including ties)</option>
+            <option>&le; 25 authors (or more including ties)</option>
+            <option>&le; 50 authors (or more including ties)</option>
+            <option>&le; 100 authors (or more including ties)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="filter3"></label>
+          <select class="form-control" id="filter3">
+            <option>&ge; 1 pages</option>
+            <option>&ge; 2 pages</option>
+            <option>&ge; 3 pages</option>
+            <option>&ge; 4 pages</option>
+            <option selected>&ge; 5 pages</option>
+            <option>&ge; 6 pages</option>
+          </select>
+        </div>
+        &nbsp;
+        <div class="form-group">
+          <button type="submit" onclick="submit()"
+                  class="btn btn-primary form-control"><b>Submit</b></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="checkbox">
+            <label style="font-size: 20px;">
+              <input type="checkbox" id="all" onclick="checkAll(this)"
+                     style="position: relative; bottom: 1px;">
+              <b> All Conferences</b>
+            </label>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="checkbox">
+            <label style="font-size: 20px;">
+              <input type="checkbox" id="CSRankings" onclick="checkCSRankings(this)"
+                     style="position: relative; bottom: 1px;">
+              <b> All Conferences on <a href="https://csrankings.org"> CSRankings </a> </b>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {% for row in area_table %}
+        <div class="row">
+          {% for area, conf_list in row %}
+            <div class="col-sm-4">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="{{ area }}" onclick="checkParts(this)"><b>{{ area }}</b>
+                </label>
+              </div>
+              {% for conf, year in conf_list %}
+                <div class="checkbox" style="padding-left: 20px;">
+                  <label>
+                    <input type="checkbox" name="{{ area }}" id="{{ conf }}" onclick="allChecked()">
+                    <!--<div class="label-text">{{ conf }}</div> {{ year }}-->
+                    {{ conf }} {{ year }}
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <hr>
+    <div class="container" id="footer">
+      <address>KCSS was created by
+        <a href="mailto:jyuno426@kaist.ac.kr"> Junho Han</a>,
+        <a href="mailto:camusian@kaist.ac.kr"> Seunghyun Lee</a> and
+        <a href="mailto:jinwoos@kaist.ac.kr"> Jinwoo Shin</a> at
+        <a href="http://alinlab.kaist.ac.kr"> Algorithmic Intelligence Laboratory, KAIST</a>.<br><br>
+        Korean names are classified by a LSTM model, and search results for Korean authors are not perfect.
+        If you could notify us (by emails:
+        <a href="mailto:camusian@kaist.ac.kr">camusian@kaist.ac.kr</a>,
+        <a href="mailto:jyuno426@kaist.ac.kr">jyuno426@kaist.ac.kr)</a>
+        Korean authors that do not appear in the search results, we will incorporate them.<br><br>
+        (*) indicates that the conference is listed on <a href="https://csrankings.org/">CSRankings.</a>
+        We do not apply any specific rules of CSRankings, for example,
+        CSRankings only counts papers of at least 6 pages while we do all papers.
+        Our search results may therefore be different from those of CSRankings.<br><br>
+        The database is updated every Sunday 03:00:00
+        <a href="https://www.timeanddate.com/worldclock/south-korea/seoul">KST</a>
+        automatically.
+      </address>
+    </div>
+    <!-- Default Statcounter code for KCSS
+    http://alinlab.kaist.ac.kr:5002/ -->
+    <script type="text/javascript">
+      var sc_project=11890816;
+      var sc_invisible=1;
+      var sc_security="0efe763c";
+      var sc_https=1;
+    </script>
+    <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async>
+    </script>
+    <noscript>
+      <div class="statcounter">
+        <a title="Web Analytics Made Easy - StatCounter" href="http://statcounter.com/" target="_blank">
+          <img class="statcounter" src="//c.statcounter.com/11890816/0/0efe763c/1/" alt="Web Analytics Made Easy - StatCounter">
+        </a>
+      </div>
+    </noscript>
+    <!-- End of Statcounter Code -->
+  </body>
+</html>

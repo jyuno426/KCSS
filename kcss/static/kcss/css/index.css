@@ -1,0 +1,125 @@
+@media (min-width: 768px) {
+  .container {
+    width: 1100px;
+    max-width: 1100px;
+  }
+  #footer {
+    max-width: 740px;
+  }
+}
+body {
+  font-family: Helvetica, sans-serif;
+  font-size: 14px;
+}
+a {
+  color: blue;
+  text-decoration: none;
+}
+a:hover {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: darkcyan;
+}
+a:active {
+  color: black;
+}
+.container {
+  max-width: 1100px;
+  padding-top: 15px;
+}
+.col-sm-4 {
+  padding-bottom: 1px;
+}
+#footer {
+  text-align: justify;
+  padding-top: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+hr {
+  border: 0;
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.75),
+    rgba(0, 0, 0, 0)
+  );
+}
+h2 {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  color: #527bbd;
+}
+h4 {
+  text-align: center;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  color: #527bbd;
+}
+
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus {
+  outline: 0 none;
+}
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary:active,
+.btn-primary:active:focus,
+.open > .dropdown-toggle.btn-primary {
+  border: none;
+  background-color: #527bbd;
+  box-shadow: none;
+}
+
+button.accordion {
+  background-color: #e7e7e7;
+  color: black;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  width: 100%;
+  text-align: left;
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+button.accordion:hover {
+  background-color: #96d2ea;
+}
+button.accordion.active {
+  background-color: #96d2ea;
+  color: black;
+  border-radius: 4px 4px 0 0;
+  margin: 4px 0 0;
+}
+div.panel {
+  opacity: 0;
+  max-height: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: #000;
+  border-radius: 0 0 4px 4px;
+  overflow: auto;
+  padding: 0 15px 0 15px;
+  margin: 0;
+  transition: 0.3s ease-in;
+}
+div.panel.show {
+  opacity: 1;
+  max-height: 500px;
+  padding: 8px 15px 0 15px;
+  transition: 0.6s ease;
+}
+svg {
+  background-color: #e7e7e7;
+  width: 100%;
+  border-radius: 4px;
+}
