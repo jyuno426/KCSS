@@ -11,21 +11,23 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        author_name_dict = json.load(open("kcss/static/json/author_name_dict.json"))
-        korean_prob_dict = json.load(open("kcss/static/json/korean_prob_dict.json"))
-        woman_prob_dict = json.load(open("kcss/static/json/woman_prob_dict.json"))
+        bp = "kcss/static/kcss/"
 
-        korean_prob_model = LSTM_Model("kcss/static/lstm_models/korean_prob_model.h5")
-        woman_prob_model = LSTM_Model("kcss/static/lstm_models/woman_prob_model.h5")
+        author_name_dict = json.load(open(bp + "json/author_name_dict.json"))
+        korean_prob_dict = json.load(open(bp + "json/korean_prob_dict.json"))
+        woman_prob_dict = json.load(open(bp + "json/woman_prob_dict.json"))
 
-        conf_list = os.listdir("kcss/static/json/publications")
+        korean_prob_model = LSTM_Model(bp + "lstm_models/korean_prob_model.h5")
+        woman_prob_model = LSTM_Model(bp + "lstm_models/woman_prob_model.h5")
+
+        conf_list = os.listdir(bp + "json/publications")
         for i, conf_name in enumerate(conf_list):
 
-            year_list = os.listdir("kcss/static/json/publications/" + conf_name)
+            year_list = os.listdir(bp + "json/publications/" + conf_name)
             for j, filename in enumerate(year_list):
 
                 year = int(filename[len(conf_name) : -5])
-                filepath = "kcss/static/json/publications/{}/{}{}.json".format(
+                filepath = bp + "json/publications/{}/{}{}.json".format(
                     conf_name.upper(), conf_name.lower(), year,
                 )
                 publications = json.load(open(filepath))
